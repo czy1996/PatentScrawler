@@ -7,12 +7,13 @@ import os
 import multiprocessing
 import hashlib
 import lxml
+import jieba.analyse
 
 cookies = {
     'IS_LOGIN': 'true',
-    'WEE_SID': 'jRJSv6OpFrIEesb9ygspDw4dejTNNAQGWFe1DVxj68kmoQHpqqln!430226176!978360166',
+    'WEE_SID': 'NrtsyAN6KC9HdODUfTzgFxHoxk5jlOjXoeGCAsclglNiGYroWvJy!-1866545472!-18978141',
     'avoid_declare': 'declare_pass',
-    'JSESSIONID': 'jRJSv6OpFrIEesb9ygspDw4dejTNNAQGWFe1DVxj68kmoQHpqqln!430226176!978360166',
+    'JSESSIONID': 'NrtsyAN6KC9HdODUfTzgFxHoxk5jlOjXoeGCAsclglNiGYroWvJy!-1866545472!-18978141',
 }
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
@@ -30,19 +31,14 @@ def post_data_from_name(name):
         'searchCondition.searchType': 'Sino_foreign',
         'searchCondition.searchExp': name,
         'wee.bizlog.modulelevel': '0200802',
-        'searchCondition.executableSearchExp': "VDB:(TBI='{}')".format(name),
+        'searchCondition.executableSearchExp': "VDB:(NBI='{}')".format(name),
     }
     return post_data
 
 
 def test_post():
-    url = info_url
-    post_data = {
-        'nrdAn': 'CN201020015078',
-        'cid': 'CN201020015078.820101124XX',
-        'sid': 'CN201020015078.820101124XX',
-        'wee.bizlog.modulelevel': '0201101',
-    }
+    url = search_url
+    post_data = post_data_from_name('CN206027392U')
     r = requests.post(url, headers=headers, cookies=cookies, data=post_data)
     log(r.text)
 
@@ -72,18 +68,20 @@ def html_from_name(name):
     return cached_html(name)
 
 
-def patent_names_from_xls(xls):
+def patent_keywords_from_xls(xls):
     """
     
     :param xls: file name 
     :return: list
     """
     df = pd.read_excel(xls)
-    name_list = list(df['名称'])
+    # log(df)
+    keyword_list = list(df['公开号'])
+    log('keywords', keyword_list)
     # new_list = []
     # for name in name_list:
     #     new_list.append(name.replace('/', '-'))
-    return name_list
+    return keyword_list
 
 
 def id_from_html(html):
@@ -161,6 +159,8 @@ def json_from_uid(vid, uid):
     result['摘要'] = ab.text()
     result['CPC分类号'] = cpc
     result['申请人邮编'] = post
+    result['关键词'] = ';'.join(jieba.analyse.extract_tags(result['名称'], topK=4))
+    # log(result['关键词'])
     return result
 
 
@@ -203,10 +203,13 @@ class Item(object):
         return d
 
 
-def download_filename(filename):
-    full_path = os.path.join('1213/需要扣出摘要的', filename)
-    names = patent_names_from_xls(full_path)
+def download_filename(path, filename):
+    log(path,filename)
+    full_path = os.path.join(path, filename)
+    log(full_path)
+    names = patent_keywords_from_xls(full_path)
     l = []
+    # log('shit ({})'.format(names))
     for i, name in enumerate(names):
         log('处理第({})个'.format(i))
         html = html_from_name(name)
@@ -233,18 +236,20 @@ def save_to_excel(l, filename):
 
 
 def main():
-    filenames = os.listdir('1213/需要扣出摘要的')
+    path = 'origin'
+    filenames = os.listdir(path)
     for i, filename in enumerate(filenames):
         log('启动进程{} {}'.format(i, filename))
-        p = multiprocessing.Process(target=download_filename, args=(filename,))
+        p = multiprocessing.Process(target=download_filename, args=(path, filename))
         p.start()
 
 
 if __name__ == '__main__':
-    # log(patent_names_from_xls('1.xls'))
+    # log(patent_keywords_from_xls('1.xls'))
     # log(html_from_name('混合切削结构石油天然气钻井钻头'))
     # log(test_post())
     # html = html_from_name('混合切削结构石油天然气钻井钻头')
     # vid, uid = id_from_html(html)
     # log(json_from_uid(vid, uid))
-    main()
+    # main()
+    test_post()
