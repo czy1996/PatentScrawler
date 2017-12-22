@@ -23,7 +23,8 @@ def main():
     pool = Pool(processes=2)
     for i, filename in enumerate(filenames):
         log('启动进程{} {}'.format(i, filename))
-        pool.apply_async(download_filename, args=(path, filename))
+        x = pool.apply_async(download_filename, args=(path, filename))
+        # x.get()
     pool.close()
     pool.join()
 

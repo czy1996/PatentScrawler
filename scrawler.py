@@ -11,9 +11,9 @@ import jieba.analyse
 
 cookies = {
     'IS_LOGIN': 'true',
-    'WEE_SID': 'NrtsyAN6KC9HdODUfTzgFxHoxk5jlOjXoeGCAsclglNiGYroWvJy!-1866545472!-18978141',
+    'WEE_SID': 'JElxXQ25cceU8H8Jo-cBiZuNhPEg2biTvFd0l7xaK21knr5FWIsH!-1866545472!-18978141',
     'avoid_declare': 'declare_pass',
-    'JSESSIONID': 'NrtsyAN6KC9HdODUfTzgFxHoxk5jlOjXoeGCAsclglNiGYroWvJy!-1866545472!-18978141',
+    'JSESSIONID': 'JElxXQ25cceU8H8Jo-cBiZuNhPEg2biTvFd0l7xaK21knr5FWIsH!-1866545472!-18978141',
 }
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
@@ -45,7 +45,7 @@ def test_post():
 
 def cached_html(name):
     # log('**debug', name, str(hash(name)))
-    cached_path = os.path.join('cached_html', search_url.split('/')[-1] + hashlib.md5(name.encode()).hexdigest())
+    cached_path = os.path.join('cached_html', search_url.split('/')[-1] + hashlib.md5(str(name).encode()).hexdigest())
     if os.path.exists(cached_path):
         try:
             with open(cached_path, 'r', encoding='utf-8') as f:
@@ -115,7 +115,7 @@ def cached_json(vid, uid):
         r = requests.post(url, headers=headers, cookies=cookies, data=post_data)
         d = r.json()
         with open(cached_path, 'w') as f:
-            json.dump(d, f)
+            json.dump(d, f, indent=4)
         log('retrieved', d)
     return d
 
